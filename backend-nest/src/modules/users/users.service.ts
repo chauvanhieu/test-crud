@@ -1,9 +1,33 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { loginDto } from './dto/loginDto';
+import { signJwt } from 'src/common/jwt/jwt';
 
 @Injectable()
 export class UsersService {
-  private userData: CreateUserDto[] = [];
+
+
+  userData: CreateUserDto[] = [];
+
+  async login(loginDto: loginDto) {
+    const { username, password } = loginDto;
+
+    const user = this.userData.find((u) => u.username === username);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    if (user.password !== password) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    const access_token = await signJwt(user);
+    return { access_token };
+  }
+
+
+
 
   create(createUserDto: CreateUserDto) {
     const user = {
@@ -34,18 +58,13 @@ export class UsersService {
 
   findOne(id: number) {
     const user = this.userData.find((u) => u.id === id);
-
     if (!user) {
-      throw new NotFoundException(`User with ID #${id} not found`);
+      throw new NotFoundException("Không tìm thấy user")
     }
-
     return user;
   }
 
   update(id: number, updateUserDto: CreateUserDto) {
-    console.log(`Updating user with ID #${id}:`, updateUserDto);
-
-
 
     this.userData = this.userData.map((u) => {
       if (u.id === id) {
@@ -53,7 +72,6 @@ export class UsersService {
       }
       return u;
     });
-
 
     return this.findOne(id);
   }
