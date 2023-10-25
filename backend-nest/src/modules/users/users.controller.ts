@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { loginDto } from './dto/loginDto';
 
 @Controller('users')
 export class UsersController {
@@ -52,6 +53,22 @@ export class UsersController {
   remove(@Param('id') id: string) {
     try {
       const user = this.usersService.remove(+id);
+      return user;
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+
+  @Post("login")
+  login(@Body() loginDto: loginDto) {
+    return this.usersService.login(loginDto);
+  }
+
+  @Post("register")
+  register(@Body() createUserDto: CreateUserDto) {
+    try {
+      const user = this.usersService.create(createUserDto);
       return user;
     } catch (error) {
       return { error: error.message };
